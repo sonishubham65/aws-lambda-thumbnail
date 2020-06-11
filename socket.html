@@ -1,0 +1,89 @@
+<html>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        $(function () {
+            var socket = io("http://localhost:3000/");
+            socket.emit("hey")
+        });
+    </script>
+    <script>
+        $(document).ready(function (e) {
+            $("#submit").click(function (e) {
+                let file = $("#file")[0].files[0];
+                const {
+                    name,
+                    type
+                } = file;
+                $.ajax({
+                    method: "POST",
+                    url: "http://localhost:3000/upload",
+                    xhr: function () {
+                        var myXhr = $.ajaxSettings.xhr();
+                        if (myXhr.upload) {
+                            myXhr.upload.addEventListener('progress', function (params) {
+                                    console.log(params)
+                                },
+                                false);
+                        }
+                        return myXhr;
+                    },
+                    success: function (data) {
+                        $.ajax({
+                            type: "PUT",
+                            url: data.data.signedRequest,
+                            xhr: function () {
+                                var myXhr = $.ajaxSettings.xhr();
+                                if (myXhr.upload) {
+                                    myXhr.upload.addEventListener('progress',
+                                        function (params) {
+                                            console.log(params)
+                                        },
+                                        false);
+                                }
+                                return myXhr;
+                            },
+                            success: function (data) {
+                                console.log("Success", data)
+                                // your callback here
+                            },
+                            error: function (error) {
+                                console.log("Error", error)
+                                // handle error
+                            },
+                            async: true,
+                            data: file,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            timeout: 600000
+                        });
+                        // your callback here
+                    },
+                    error: function (error) {
+                        console.log("Error", error)
+                        // handle error
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        "profile": {
+                            "name": name,
+                            "type": type
+                        }
+                    }),
+
+                });
+
+            })
+
+        })
+    </script>
+    <form>
+        <input type="file" id="file" />
+        <a id="submit">Submit</a>
+    </form>
+</body>
+
+</html>
